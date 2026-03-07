@@ -7,6 +7,19 @@ new class extends Component
     public string $server_ip = '';
 
     public string $script = '';
+
+    public function getPublicKeyProperty(): string
+    {
+        return config('remote-tasks.ssh_public_key') ?? 'Public key not configured';
+    }
+
+    public function runTask(): void
+    {
+        $privateKey = config('remote-tasks.ssh_private_key');
+        $publicKey = config('remote-tasks.ssh_public_key');
+
+        // SSH connection logic will go here
+    }
 };
 ?>
 
@@ -15,17 +28,27 @@ new class extends Component
         <form class="space-y-6">
             <flux:heading size="lg">Remote Task Runner</flux:heading>
 
-            <flux:field>
-                <flux:label>Server IP Address</flux:label>
-                <flux:input wire:model="server_ip" placeholder="192.168.1.1" />
-                <flux:error name="server_ip" />
-            </flux:field>
+            <flux:input
+                wire:model="server_ip"
+                label="Server IP Address"
+                placeholder="192.168.1.1"
+            />
 
-            <flux:field>
-                <flux:label>Script</flux:label>
-                <flux:textarea wire:model="script" rows="10" placeholder="echo 'Hello from remote server'" />
-                <flux:error name="script" />
-            </flux:field>
+            <flux:textarea
+                wire:model="script"
+                label="Script"
+                rows="10"
+                placeholder="echo 'Hello from remote server'"
+            />
+
+            <flux:input
+                readonly
+                copyable
+                :value="$this->publicKey"
+                variant="filled"
+                label="Public Key (authorize this on remote server)"
+                description:trailing="Add this public key to ~/.ssh/authorized_keys on the remote server"
+            />
 
             <div class="flex justify-end">
                 <flux:button variant="primary" wire:click="runTask">
