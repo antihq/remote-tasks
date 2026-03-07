@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Traits\InteractsWithSsh;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
-    use InteractsWithSsh;
+    use HasFactory, InteractsWithSsh;
 
     protected $fillable = [
         'server_ip',
@@ -22,8 +23,8 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'started_at' => 'timestamp',
-        'finished_at' => 'timestamp',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
     ];
 
     public function markAsRunning(): void

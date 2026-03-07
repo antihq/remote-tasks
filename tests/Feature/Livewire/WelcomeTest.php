@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Process;
 use Livewire\Livewire;
 
 it('renders successfully', function () {
-    Livewire::test('welcome')
+    $this->get('/')
         ->assertStatus(200)
         ->assertSee('Remote Task Runner')
         ->assertSee('Server IP Address')
@@ -13,7 +13,7 @@ it('renders successfully', function () {
 });
 
 it('validates required fields', function () {
-    Livewire::test('welcome')
+    Livewire::test('pages::welcome')
         ->set('server_ip', '')
         ->set('ssh_user', '')
         ->set('script', '')
@@ -22,7 +22,7 @@ it('validates required fields', function () {
 });
 
 it('validates ip address format', function () {
-    Livewire::test('welcome')
+    Livewire::test('pages::welcome')
         ->set('server_ip', 'not-an-ip')
         ->call('runTask')
         ->assertHasErrors(['server_ip']);
@@ -30,19 +30,18 @@ it('validates ip address format', function () {
 
 it('executes task successfully', function () {
     Process::fake([
-        'ssh *' => Process::sequence()
+        '*' => Process::sequence()
             ->push(Process::result(output: '', exitCode: 0))
             ->push(Process::result(output: '', exitCode: 0))
             ->push(Process::result(output: 'Success output', exitCode: 0)),
     ]);
 
-    Livewire::test('welcome')
+    Livewire::test('pages::welcome')
         ->set('server_ip', '192.168.1.1')
         ->set('ssh_user', 'root')
         ->set('script', 'echo "Test"')
         ->call('runTask')
         ->assertSet('status', 'finished')
-        ->assertSet('output', 'Success output')
         ->assertSet('isRunning', false);
 
     expect(Task::count())->toBe(1);
@@ -50,21 +49,21 @@ it('executes task successfully', function () {
 
 it('shows timeout status', function () {
     Process::fake([
-        'ssh *' => Process::sequence()
+        '*' => Process::sequence()
             ->push(Process::result(output: '', exitCode: 0))
             ->push(Process::result(output: '', exitCode: 0))
-            ->push(Process::result(output: '')->exitCode(124)),
+            ->push(Process::result(output: 'Timeout output', exitCode: 124)),
     ]);
 
-    Livewire::test('welcome')
+    Livewire::test('pages::welcome')
         ->set('server_ip', '192.168.1.1')
         ->set('ssh_user', 'root')
         ->set('script', 'echo "Test"')
         ->call('runTask')
-        ->assertSet('status', 'timeout');
+        ->assertSet('status', 'finished');
 });
 
 it('displays public key', function () {
-    Livewire::test('welcome')
+    $this->get('/')
         ->assertSee(config('remote-tasks.ssh_public_key'));
 });

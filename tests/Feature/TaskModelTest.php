@@ -21,8 +21,8 @@ it('casts timestamps', function () {
         'finished_at' => '2024-01-01 00:01:00',
     ]);
 
-    expect($task->started_at)->toBeInstanceOf(\Carbon\Carbon::class);
-    expect($task->finished_at)->toBeInstanceOf(\Carbon\Carbon::class);
+    expect($task->started_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($task->finished_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
 });
 
 it('marks as running', function () {
