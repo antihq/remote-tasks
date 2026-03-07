@@ -96,7 +96,7 @@ trait InteractsWithSsh
                 output: $result->output(),
                 timedOut: false
             );
-        } catch (\Illuminate\Process\Exceptions\ProcessTimedOutException $e) {
+        } catch (ProcessTimedOutException $e) {
             return new ShellResponse(
                 exitCode: 124,
                 output: $e->result->output(),
