@@ -196,7 +196,8 @@ trait InteractsWithSsh
     {
         return view('scripts.callback', [
             'task' => $this,
-            'scriptPath' => $this->scriptFile(),
+            'wrapperPath' => $this->scriptFile(),
+            'tempScriptPath' => $this->path().'/'.$this->id.'-script.sh',
             'callbackUrl' => $callbackUrl,
         ])->render();
     }
