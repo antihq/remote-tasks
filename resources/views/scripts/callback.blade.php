@@ -2,10 +2,10 @@
 set -e
 
 # Write user script to temp file
-cat > {{ $tempScriptPath }} << 'SCRIPT_EOF'
+cat > {{ $tempScriptPath }} << '{{ $token }}'
 {!! $task->script !!}
 
-SCRIPT_EOF
+{{ $token }}
 
 # Execute the user's script
 @if ($task->timeout > 0)

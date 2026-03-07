@@ -7,6 +7,7 @@ use App\ShellResponse;
 use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 trait InteractsWithSsh
 {
@@ -104,11 +105,13 @@ trait InteractsWithSsh
                 $this->outputFile()
             );
 
+            $token = Str::random(20);
+
             $command = SecureShellCommand::forScript(
                 $this->server_ip,
                 $keyPath,
                 $this->ssh_user,
-                "'bash -s ' << 'EOF'\n{$script}\nEOF"
+                "'bash -s ' << '{$token}'\n{$script}\n{$token}"
             );
 
             $result = Process::timeout($this->timeout)->run($command);
@@ -157,11 +160,13 @@ trait InteractsWithSsh
         $keyPath = $this->writeKeyFile();
 
         try {
+            $token = Str::random(20);
+
             $command = SecureShellCommand::forScript(
                 $this->server_ip,
                 $keyPath,
                 $this->ssh_user,
-                "'bash -s ' << 'EOF'\n{$script}\nEOF"
+                "'bash -s ' << '{$token}'\n{$script}\n{$token}"
             );
 
             $result = Process::timeout($timeout)->run($command);
@@ -199,6 +204,7 @@ trait InteractsWithSsh
             'wrapperPath' => $this->scriptFile(),
             'tempScriptPath' => $this->path().'/'.$this->id.'-script.sh',
             'callbackUrl' => $callbackUrl,
+            'token' => Str::random(20),
         ])->render();
     }
 
