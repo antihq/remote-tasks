@@ -77,7 +77,7 @@ trait InteractsWithSsh
 
         try {
             $script = sprintf(
-                'bash %s 2>&1 | tee %s',
+                'set -o pipefail; bash %s 2>&1 | tee %s',
                 $this->scriptFile(),
                 $this->outputFile()
             );
