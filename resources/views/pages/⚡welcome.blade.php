@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Task;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -28,6 +29,10 @@ new class extends Component
 
     public function runTask(): void
     {
+        if ($this->isRateLimited()) {
+            return;
+        }
+
         $this->validate([
             'server_ip' => 'required|ip',
             'ssh_user' => 'required|string',
@@ -66,6 +71,27 @@ new class extends Component
             }
         }
     }
+
+    protected function isRateLimited(): bool
+    {
+        $key = 'run-task:'.$this->getIp();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->addError('rate_limit', "Too many requests. Please try again in {$seconds} seconds.");
+
+            return true;
+        }
+
+        RateLimiter::hit($key, 60);
+
+        return false;
+    }
+
+    protected function getIp(): string
+    {
+        return request()->ip() ?? 'unknown';
+    }
 };
 ?>
 
@@ -74,6 +100,12 @@ new class extends Component
         <flux:heading size="lg">Remote Task Runner</flux:heading>
 
         <form wire:submit="runTask" class="space-y-6">
+            @error('rate_limit')
+                <flux:callout color="red">
+                    <flux:callout.text>{{ $message }}</flux:callout.text>
+                </flux:callout>
+            @enderror
+
             <div class="grid grid-cols-2 gap-4">
                 <flux:input
                     wire:model="server_ip"
