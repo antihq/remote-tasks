@@ -6,6 +6,7 @@ use App\SecureShellCommand;
 use App\ShellResponse;
 use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\URL;
 
 trait InteractsWithSsh
 {
@@ -24,6 +25,27 @@ trait InteractsWithSsh
         $response = $this->executeScript();
 
         return $this->updateForResponse($response);
+    }
+
+    public function runInBackground(): self
+    {
+        $this->markAsRunning();
+
+        $this->ensureWorkingDirectoryExists();
+
+        $callbackUrl = URL::signedRoute(
+            'api.callback',
+            ['task' => $this->id],
+            now()->addHours(24)
+        );
+
+        $wrappedScript = $this->wrapScriptWithCallback($callbackUrl);
+
+        $this->uploadWrappedScript($wrappedScript);
+
+        $this->executeBackgroundScript();
+
+        return $this;
     }
 
     protected function path(): string
@@ -168,5 +190,73 @@ trait InteractsWithSsh
             'output' => $response->output,
             'finished_at' => now(),
         ]);
+    }
+
+    protected function wrapScriptWithCallback(string $callbackUrl): string
+    {
+        return view('scripts.callback', [
+            'task' => $this,
+            'scriptPath' => $this->scriptFile(),
+            'callbackUrl' => $callbackUrl,
+        ])->render();
+    }
+
+    protected function uploadWrappedScript(string $script): bool
+    {
+        $localScript = $this->writeLocalScriptContent($script);
+        $keyPath = $this->writeKeyFile();
+
+        try {
+            $command = SecureShellCommand::forUpload(
+                $this->server_ip,
+                $keyPath,
+                $this->ssh_user,
+                $localScript,
+                $this->scriptFile()
+            );
+
+            $result = Process::timeout(15)->run($command);
+
+            return $result->successful();
+        } finally {
+            @unlink($localScript);
+            @unlink($keyPath);
+        }
+    }
+
+    protected function writeLocalScriptContent(string $content): string
+    {
+        $hash = md5(uniqid().$content);
+        $path = storage_path('app/scripts/'.$hash);
+
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        file_put_contents($path, $content);
+
+        return $path;
+    }
+
+    protected function executeBackgroundScript(): void
+    {
+        $keyPath = $this->writeKeyFile();
+
+        try {
+            $command = SecureShellCommand::forScript(
+                $this->server_ip,
+                $keyPath,
+                $this->ssh_user,
+                sprintf(
+                    "'nohup bash %s > %s 2>&1 &'",
+                    $this->scriptFile(),
+                    $this->outputFile()
+                )
+            );
+
+            Process::timeout(10)->run($command);
+        } finally {
+            @unlink($keyPath);
+        }
     }
 }
