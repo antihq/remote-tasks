@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Task;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -19,7 +20,8 @@ new class extends Component
 
     public bool $isRunning = false;
 
-    public function getPublicKeyProperty(): string
+    #[Computed]
+    public function publicKey(): string
     {
         return config('remote-tasks.ssh_public_key') ?? 'Public key not configured';
     }
@@ -121,14 +123,10 @@ new class extends Component
 
                 <flux:textarea
                     readonly
-                    :value="$output"
                     rows="15"
                     variant="filled"
-                />
+                >{{ $output }}</flux:textarea>
             </div>
         @endif
-    </div>
-</div>
-        </form>
     </div>
 </div>

@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\SecureShellCommand;
 use App\ShellResponse;
+use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Process;
 
 trait InteractsWithSsh
@@ -16,7 +17,7 @@ trait InteractsWithSsh
 
         try {
             $this->upload();
-        } catch (\Illuminate\Process\Exceptions\ProcessTimedOutException $e) {
+        } catch (ProcessTimedOutException $e) {
             return $this->markAsTimedOut();
         }
 
@@ -109,7 +110,7 @@ trait InteractsWithSsh
     protected function writeKeyFile(): string
     {
         $path = storage_path('app/keys/'.uniqid());
-        file_put_contents($path, config('remote-tasks.ssh_private_key'));
+        file_put_contents($path, rtrim(config('remote-tasks.ssh_private_key')).PHP_EOL);
         chmod($path, 0600);
 
         return $path;
@@ -148,7 +149,7 @@ trait InteractsWithSsh
                 output: $result->output(),
                 timedOut: false
             );
-        } catch (\Illuminate\Process\Exceptions\ProcessTimedOutException $e) {
+        } catch (ProcessTimedOutException $e) {
             return new ShellResponse(
                 exitCode: 124,
                 output: '',
