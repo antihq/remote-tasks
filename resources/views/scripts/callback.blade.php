@@ -18,4 +18,4 @@ bash {{ $tempScriptPath }}
 EXIT_CODE=$?
 
 # Callback to home server with exit code
-curl -X POST "{{ $callbackUrl }}" -d "exit_code=${EXIT_CODE}" > /dev/null 2>&1 &
+curl -X POST "{!! $callbackUrl !!}" -d "exit_code=${EXIT_CODE}" > /dev/null 2>&1 &
