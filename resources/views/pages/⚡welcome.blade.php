@@ -18,8 +18,6 @@ new class extends Component
 
     public string $status = '';
 
-    public bool $isRunning = false;
-
     #[Computed]
     public function publicKey(): string
     {
@@ -34,7 +32,6 @@ new class extends Component
             'script' => 'required|string',
         ]);
 
-        $this->isRunning = true;
         $this->status = 'pending';
         $this->output = '';
 
@@ -46,23 +43,17 @@ new class extends Component
             'timeout' => 3600,
         ]);
 
-        try {
-            $this->task->run();
-            $this->output = $this->task->output;
-            $this->status = $this->task->status;
-        } catch (\Exception $e) {
-            $this->output = 'Error: '.$e->getMessage();
-            $this->status = 'error';
-        } finally {
-            $this->isRunning = false;
-        }
+        $this->task->run();
+
+        $this->output = $this->task->output;
+        $this->status = $this->task->status;
     }
 };
 ?>
 
 <div class="min-h-screen flex flex-col items-center justify-center p-8">
-    <div class="w-full max-w-2xl mx-auto">
-        <flux:heading size="lg" class="mb-6">Remote Task Runner</flux:heading>
+    <div class="w-full max-w-2xl mx-auto space-y-6">
+        <flux:heading size="lg">Remote Task Runner</flux:heading>
 
         <form wire:submit="runTask" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
@@ -102,16 +93,14 @@ new class extends Component
                 <flux:button
                     type="submit"
                     variant="primary"
-                    wire:loading.attr="disabled"
                 >
-                    <span wire:loading.remove>Run Task</span>
-                    <span wire:loading>Running...</span>
+                    Run Task
                 </flux:button>
             </div>
         </form>
 
         @if($output)
-            <div class="mt-8 space-y-4">
+            <div class="space-y-6">
                 <flux:heading size="md">
                     Output
                     @if($status === 'finished')
