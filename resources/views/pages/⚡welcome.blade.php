@@ -2,6 +2,7 @@
 
 use App\Models\Task;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -14,12 +15,6 @@ new class extends Component
     public string $script = '';
 
     public bool $run_in_background = false;
-
-    public ?Task $task = null;
-
-    public string $output = '';
-
-    public string $status = '';
 
     #[Computed]
     public function publicKey(): string
@@ -39,10 +34,7 @@ new class extends Component
             'script' => 'required|string',
         ]);
 
-        $this->status = 'pending';
-        $this->output = '';
-
-        $this->task = Task::create([
+        $task = Task::create([
             'server_ip' => $this->server_ip,
             'ssh_user' => $this->ssh_user,
             'script' => $this->script,
@@ -51,25 +43,12 @@ new class extends Component
         ]);
 
         if ($this->run_in_background) {
-            $this->task->runInBackground();
-            $this->status = $this->task->status;
+            $task->runInBackground();
         } else {
-            $this->task->run();
-            $this->output = $this->task->output;
-            $this->status = $this->task->status;
+            $task->run();
         }
-    }
 
-    public function pollTaskStatus(): void
-    {
-        if ($this->task && $this->task->status === 'running') {
-            $this->task->refresh();
-            $this->status = $this->task->status;
-
-            if ($this->task->status !== 'running') {
-                $this->output = $this->task->output;
-            }
-        }
+        $this->redirect(URL::signedRoute('tasks.show', ['task' => $task->id]));
     }
 
     protected function isRateLimited(): bool
@@ -96,7 +75,7 @@ new class extends Component
 ?>
 
 <div class="min-h-screen flex flex-col items-center justify-center p-8">
-    <div class="w-full max-w-2xl mx-auto space-y-6" @if($task && $task->status === 'running') wire:poll.3s="pollTaskStatus" @endif>
+    <div class="w-full max-w-2xl mx-auto space-y-6">
         <flux:heading size="lg">Remote Task Runner</flux:heading>
 
         <form wire:submit="runTask" class="space-y-6">
@@ -143,7 +122,7 @@ new class extends Component
                 <flux:switch
                     wire:model="run_in_background"
                     label="Run in Background"
-                    description="Execute script asynchronously with callback"
+                    description="Execute script asynchronously"
                 />
 
                 <flux:button
@@ -154,43 +133,5 @@ new class extends Component
                 </flux:button>
             </div>
         </form>
-
-        @if($task && $task->status === 'running')
-            <div class="space-y-6">
-                <flux:heading size="md">
-                    Status
-                    <flux:badge color="blue" size="sm">Running in Background...</flux:badge>
-                </flux:heading>
-
-                <flux:callout color="blue">
-                    <flux:callout.heading>Task ID: {{ $task->id }}</flux:callout.heading>
-                    <flux:callout.text>
-                        The script is executing asynchronously on the remote server. 
-                        This page will automatically update when complete.
-                    </flux:callout.text>
-                </flux:callout>
-            </div>
-        @endif
-
-        @if($output)
-            <div class="space-y-6">
-                <flux:heading size="md">
-                    Output
-                    @if($status === 'finished')
-                        <flux:badge color="green" size="sm">Success</flux:badge>
-                    @elseif($status === 'timeout')
-                        <flux:badge color="yellow" size="sm">Timeout</flux:badge>
-                    @elseif($status === 'running')
-                        <flux:badge color="blue" size="sm">Running</flux:badge>
-                    @endif
-                </flux:heading>
-
-                <flux:textarea
-                    readonly
-                    rows="15"
-                    variant="filled"
-                >{{ $output }}</flux:textarea>
-            </div>
-        @endif
     </div>
 </div>

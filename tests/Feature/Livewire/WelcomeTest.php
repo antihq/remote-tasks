@@ -40,11 +40,12 @@ it('executes task successfully', function () {
         ->set('server_ip', '192.168.1.1')
         ->set('ssh_user', 'root')
         ->set('script', 'echo "Test"')
+        ->set('run_in_background', false)
         ->call('runTask')
-        ->assertSet('status', 'finished')
-        ->assertSet('isRunning', false);
+        ->assertRedirect();
 
     expect(Task::count())->toBe(1);
+    expect(Task::first()->status)->toBe('finished');
 });
 
 it('shows timeout status', function () {
@@ -59,8 +60,11 @@ it('shows timeout status', function () {
         ->set('server_ip', '192.168.1.1')
         ->set('ssh_user', 'root')
         ->set('script', 'echo "Test"')
+        ->set('run_in_background', false)
         ->call('runTask')
-        ->assertSet('status', 'finished');
+        ->assertRedirect();
+
+    expect(Task::first()->status)->toBe('finished');
 });
 
 it('displays public key', function () {
