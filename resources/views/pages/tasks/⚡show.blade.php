@@ -88,6 +88,17 @@ new class extends Component
                 <x-description.term>Finished</x-description.term>
                 <x-description.details>{{ $task->finished_at->format('M j, Y g:i A') }}</x-description.details>
             @endif
+
+            @if($task->finished_at && $task->exit_code !== null)
+                <x-description.term>Exit Code</x-description.term>
+                <x-description.details>
+                    @if($task->exit_code === 0)
+                        <span class="text-green-600">{{ $task->exit_code }}</span>
+                    @else
+                        <span class="text-red-600">{{ $task->exit_code }}</span>
+                    @endif
+                </x-description.details>
+            @endif
         </x-description.list>
     </div>
 </div>
