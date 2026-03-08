@@ -48,7 +48,7 @@ new class extends Component
             $task->run();
         }
 
-        $this->redirect(URL::signedRoute('tasks.show', ['task' => $task->id]));
+        $this->redirect(URL::signedRoute('tasks.show', ['task' => $task->id]), navigate: true);
     }
 
     protected function isRateLimited(): bool
