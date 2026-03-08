@@ -93,9 +93,9 @@ new class extends Component
                 <x-description.term>Exit Code</x-description.term>
                 <x-description.details>
                     @if($task->exit_code === 0)
-                        <span class="text-green-600">{{ $task->exit_code }}</span>
+                        <flux:text color="green">{{ $task->exit_code }}</flux:text>
                     @else
-                        <span class="text-red-600">{{ $task->exit_code }}</span>
+                        <flux:text color="red">{{ $task->exit_code }}</flux:text>
                     @endif
                 </x-description.details>
             @endif
