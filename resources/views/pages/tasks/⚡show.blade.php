@@ -48,6 +48,15 @@ new class extends Component
             </flux:button>
         </div>
 
+        @if($task->status === 'running')
+            <flux:callout color="blue">
+                <flux:callout.heading>Task Running</flux:callout.heading>
+                <flux:callout.text>
+                    The script is executing on the remote server. This page will automatically update when complete.
+                </flux:callout.text>
+            </flux:callout>
+        @endif
+
         <x-description.list>
             <x-description.term>Server IP Address</x-description.term>
             <x-description.details>{{ $task->server_ip }}</x-description.details>
@@ -59,18 +68,6 @@ new class extends Component
             <x-description.details>
                 <pre class="whitespace-pre-wrap font-mono text-sm">{{ $task->script }}</pre>
             </x-description.details>
-
-            @if($task->status === 'running')
-                <x-description.term>Status</x-description.term>
-                <x-description.details>
-                    <flux:callout color="blue">
-                        <flux:callout.heading>Task Running</flux:callout.heading>
-                        <flux:callout.text>
-                            The script is executing on the remote server. This page will automatically update when complete.
-                        </flux:callout.text>
-                    </flux:callout>
-                </x-description.details>
-            @endif
 
             @if($task->output)
                 <x-description.term>Output</x-description.term>
