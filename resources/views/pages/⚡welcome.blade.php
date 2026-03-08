@@ -118,13 +118,13 @@ new class extends Component
                 description:trailing="Add to ~/.ssh/authorized_keys"
             />
 
-            <div class="flex items-center justify-between">
-                <flux:switch
-                    wire:model="run_in_background"
-                    label="Run in Background"
-                    description="Execute script asynchronously"
-                />
+            <flux:switch
+                wire:model="run_in_background"
+                label="Run in Background"
+                description="Execute script asynchronously"
+            />
 
+            <div class="flex items-center justify-end">
                 <flux:button
                     type="submit"
                     variant="primary"
